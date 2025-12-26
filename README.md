@@ -40,7 +40,11 @@
 
 ### Задание 2
 
-https://github.com/kefffirchik/githw/commit/57e1ad86d0d4846282d346de6f51a627f85cd330
+### Source Code Management
+![SCM](img/pipe_script.png)
+
+### Console Output (Build Result)
+![Console Output](img/pipe_output.png)
  
 ---
 
