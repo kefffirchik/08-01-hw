@@ -27,13 +27,13 @@
 ## Jenkins Freestyle Project
 
 ### Source Code Management
-![SCM](img/git settings.png)
+![SCM](img/git_settings.png)
 
 ### Build Steps
-![Build Steps](img/build steps.png)
+![Build Steps](img/build_steps.png)
 
 ### Console Output (Build Result)
-![Console Output](img/console output.png)
+![Console Output](img/console_output.png)
 
 
 ---
