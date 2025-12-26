@@ -1,4 +1,4 @@
-# Домашнее задание к занятию "Git" - Nikiforov Viktor
+# Домашнее задание к занятию "CI/CD" - Nikiforov Viktor
 
 
 ### Инструкция по выполнению домашнего задания
@@ -24,7 +24,17 @@
 
 ### Задание 1....
 
-https://github.com/kefffirchik/githw/commit/9081b260e2884053b4c511bb3e2e541f829f2b78
+## Jenkins Freestyle Project
+
+### Source Code Management
+![SCM](img/git settings.png)
+
+### Build Steps
+![Build Steps](img/build steps.png)
+
+### Console Output (Build Result)
+![Console Output](img/console output.png)
+
 
 ---
 
