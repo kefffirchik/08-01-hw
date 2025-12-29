@@ -1,4 +1,4 @@
-# Домашнее задание к занятию "CI/CD" - Nikiforov Viktor
+# Домашнее задание к занятию "GitLab" - Nikiforov Viktor
 
 
 ### Инструкция по выполнению домашнего задания
@@ -15,52 +15,36 @@
    6. Любые вопросы по выполнению заданий спрашивайте в чате учебной группы и/или в разделе “Вопросы по заданию” в личном кабинете.
    
 Желаем успехов в выполнении домашнего задания!
-   
-### Дополнительные материалы, которые могут быть полезны для выполнения задания
-
-1. [Руководство по оформлению Markdown файлов](https://gist.github.com/Jekins/2bf2d0638163f1294637#Code)
-
----
 
 ### Задание 1....
 
-## Jenkins Freestyle Project
+## GitLab Runner
 
-### Source Code Management
-![SCM](img/git_settings.png)
+### Runner Status
+![Status](img/runner.png)
 
-### Build Steps
-![Build Steps](img/build_steps.png)
+### Runner Details
+![Details](img/runner_detail.png)
 
-### Console Output (Build Result)
-![Console Output](img/console_output.png)
+### Log Output
+![Console Output](img/job_log.png)
 
+### Pipeline Status
+![Status](img/pipe_status.png)
 
 ---
 
 ### Задание 2
 
-### Source Code Management
-![SCM](img/pipe_script.png)
+## GitHub to GitLab
 
-### Console Output (Build Result)
-![Console Output](img/pipe_output.png)
+### Pipeline Passed
+![SCM](img/pipe_passed.png)
+
+### Console Output
+![Console Output](img/build_job.png)
+
+### CI Config
+![Ci Config](./.gitlab-ci.yml)
  
 ---
-
-### Задание 3
-
-##Nexus + Jenkins
-
-### Nexus raw-hosted
-![SCM](img/repo.png)
-
-### Go binary
-![Build Steps](img/nexus_build.png)
-
-###Jenkins Pipeline conf
-![Pipline config](img/pipe_script_nexus.png)
-
-### Build Result
-![Console Output](img/pipe_output.png)
-

@@ -1,0 +1,38 @@
+stages:
+  - check
+  - test
+  - build
+
+default:
+  tags:
+    - netology
+  image: golang:1.21
+
+check:
+  stage: check
+  script:
+    - echo "Check stage"
+    - ls -la
+    - test -f gitlab/Vagrantfile
+    - echo "Vagrantfile found"
+
+test:
+  stage: test
+  script:
+    - echo "Test stage"
+    - test -d gitlab
+    - echo "Directory gitlab exists"
+    - echo "Test stage passed"
+
+build:
+  stage: build
+  script:
+    - echo "Build stage"
+    - mkdir -p artifacts
+    - echo "Build artifact generated at $(date)" > artifacts/build.txt
+    - echo "GitLab CI is working!" >> artifacts/build.txt
+    - cat artifacts/build.txt
+  artifacts:
+    paths:
+      - artifacts/build.txt
+    expire_in: 1 week
