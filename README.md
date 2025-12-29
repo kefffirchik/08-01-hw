@@ -50,4 +50,17 @@
 
 ### Задание 3
 
-https://github.com/kefffirchik/githw/network
+##Nexus + Jenkins
+
+### Nexus raw-hosted
+![SCM](img/repo.png)
+
+### Go binary
+![Build Steps](img/nexus_build.png)
+
+###Jenkins Pipeline conf
+![Pipline config](img/pipe_script_nexus.png)
+
+### Build Result
+![Console Output](img/pipe_output.png)
+
