@@ -16,7 +16,7 @@
    
 Желаем успехов в выполнении домашнего задания!
 
-### Задание 1....
+### Задание 1
 
 ## Zabbix Server with PostgreSQL and Apache
 
@@ -52,15 +52,31 @@ sudo systemctl restart zabbix-server apache2
 
 ### Задание 2
 
-## GitHub to GitLab
+## Zabbix Agent install and monitoring
 
-### Pipeline Passed
-![SCM](img/pipe_passed.png)
+### Hosts
+![Hosts](img/agents-hosts.png)
 
-### Console Output
-![Console Output](img/build_job.png)
+### Agent Log
+![Host 1](img/1agent-log.png)
+![Host 2](img/2agent-connect.png)
 
-### CI Config
-![Ci Config](./.gitlab-ci.yml)
- 
+### Latest Data
+![Latest Data](img/latest-data.png)
+
+### Commands
+sudo apt update
+sudo apt -y install zabbix-agent
+
+sudo systemctl enable --now zabbix-agent
+
+sudo nano /etc/zabbix/zabbix_agentd.conf
+
+sudo systemctl restart zabbix-agent
+
+sudo systemctl status zabbix-agent
+
+sudo apt -y install zabbix-get
+zabbix_get -s 89.169.161.143 -k agent.ping
+
 ---
