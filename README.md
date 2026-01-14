@@ -1,4 +1,4 @@
-# Домашнее задание к занятию "GitLab" - Nikiforov Viktor
+# Домашнее задание к занятию "Система мониторинга Zabbix" - Nikiforov Viktor
 
 
 ### Инструкция по выполнению домашнего задания
@@ -18,19 +18,35 @@
 
 ### Задание 1....
 
-## GitLab Runner
+## Zabbix Server with PostgreSQL and Apache
 
-### Runner Status
-![Status](img/runner.png)
+### Web-interface
+![Zabbix Web UI](img/zabbix_login.png)
 
-### Runner Details
-![Details](img/runner_detail.png)
+### Commands
 
-### Log Output
-![Console Output](img/job_log.png)
+sudo apt update && sudo apt -y upgrade
+sudo apt -y install postgresql
+sudo systemctl enable --now postgresql
 
-### Pipeline Status
-![Status](img/pipe_status.png)
+sudo -u postgres psql <<'SQL'
+CREATE USER zabbix WITH PASSWORD '123456789';
+CREATE DATABASE zabbix OWNER zabbix;
+GRANT ALL PRIVILEGES ON DATABASE zabbix TO zabbix;
+SQL
+
+wget https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest+ubuntu22.04_all.deb
+sudo dpkg -i zabbix-release_latest+ubuntu22.04_all.deb
+sudo apt update
+
+sudo apt -y install zabbix-server-pgsql zabbix-frontend-php zabbix-apache-conf zabbix-sql-scripts zabbix-agent php-pgsql
+
+zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | sudo -u zabbix psql zabbix
+
+sudo sed -i 's/^# DBPassword=.*/DBPassword=zabbix_password/' /etc/zabbix/zabbix_server.conf
+
+sudo systemctl enable --now zabbix-server zabbix-agent apache2
+sudo systemctl restart zabbix-server apache2
 
 ---
 
