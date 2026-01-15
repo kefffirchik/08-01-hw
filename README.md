@@ -1,4 +1,4 @@
-# Домашнее задание к занятию "Система мониторинга Zabbix" - Nikiforov Viktor
+# Домашнее задание к занятию "Система мониторинга Zabbix. Часть 2" - Nikiforov Viktor
 
 
 ### Инструкция по выполнению домашнего задания
@@ -18,65 +18,27 @@
 
 ### Задание 1
 
-## Zabbix Server with PostgreSQL and Apache
+## Zabbix Template Create
 
-### Web-interface
-![Zabbix Web UI](img/zabbix_login.png)
-
-### Commands
-
-sudo apt update && sudo apt -y upgrade
-sudo apt -y install postgresql
-sudo systemctl enable --now postgresql
-
-sudo -u postgres psql <<'SQL'
-CREATE USER zabbix WITH PASSWORD '123456789';
-CREATE DATABASE zabbix OWNER zabbix;
-GRANT ALL PRIVILEGES ON DATABASE zabbix TO zabbix;
-SQL
-
-wget https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest+ubuntu22.04_all.deb
-sudo dpkg -i zabbix-release_latest+ubuntu22.04_all.deb
-sudo apt update
-
-sudo apt -y install zabbix-server-pgsql zabbix-frontend-php zabbix-apache-conf zabbix-sql-scripts zabbix-agent php-pgsql
-
-zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | sudo -u zabbix psql zabbix
-
-sudo sed -i 's/^# DBPassword=.*/DBPassword=zabbix_password/' /etc/zabbix/zabbix_server.conf
-
-sudo systemctl enable --now zabbix-server zabbix-agent apache2
-sudo systemctl restart zabbix-server apache2
+### Template
+![Zabbix Template](img/zad1.png)
 
 ---
 
-### Задание 2
+### Задание 2-3
 
-## Zabbix Agent install and monitoring
+## Adding new template to hosts
 
 ### Hosts
-![Hosts](img/agents-hosts.png)
+![Hosts](img/zad2-3.png)
 
-### Agent Log
-![Host 1](img/1agent-log.png)
-![Host 2](img/2agent-connect.png)
+---
 
-### Latest Data
-![Latest Data](img/latest-data.png)
+### Задание 4
 
-### Commands
-sudo apt update
-sudo apt -y install zabbix-agent
+## Custom Dashboard
 
-sudo systemctl enable --now zabbix-agent
-
-sudo nano /etc/zabbix/zabbix_agentd.conf
-
-sudo systemctl restart zabbix-agent
-
-sudo systemctl status zabbix-agent
-
-sudo apt -y install zabbix-get
-zabbix_get -s 89.169.161.143 -k agent.ping
+### Dashboard
+![Dashboard](img/zad4.png)
 
 ---
