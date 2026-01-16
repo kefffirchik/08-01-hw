@@ -1,4 +1,4 @@
-# Домашнее задание к занятию "Система мониторинга Zabbix. Часть 2" - Nikiforov Viktor
+# Домашнее задание к занятию "Система мониторинга Prometheus" - Nikiforov Viktor
 
 
 ### Инструкция по выполнению домашнего задания
@@ -18,27 +18,41 @@
 
 ### Задание 1
 
-## Zabbix Template Create
+## Prometheus
 
-### Template
-![Zabbix Template](img/zad1.png)
+### Status
+![Prometheus Status](img/zad2prom.png)
 
 ---
 
-### Задание 2-3
+### Задание 2
 
-## Adding new template to hosts
+## Node Exporter
 
-### Hosts
-![Hosts](img/zad2-3.png)
+### Status
+![Node Exporter Status](img/nodeex.png)
+
+---
+
+### Задание 3
+
+## Configuration
+
+### Prometheus Config
+![Configuration](img/nodeconf.png)
+
+## Targets
+
+### Prometheus Targets
+![Targets](img/targets.png)
 
 ---
 
 ### Задание 4
 
-## Custom Dashboard
+## Grafana
 
-### Dashboard
-![Dashboard](img/zad4.png)
+### Grafana Change Name
+![User](img/graf.png)
 
 ---
