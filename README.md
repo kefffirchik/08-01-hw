@@ -1,4 +1,4 @@
-# Домашнее задание к занятию "Система мониторинга Prometheus" - Nikiforov Viktor
+# Домашнее задание к занятию "Disaster recovery и Keepalived" - Nikiforov Viktor
 
 
 ### Инструкция по выполнению домашнего задания
@@ -18,41 +18,38 @@
 
 ### Задание 1
 
-## Prometheus
+## Cisco Packet Tracer
 
-### Status
-![Prometheus Status](img/zad2prom.png)
+### RouterCLI
+![RouterCLI](img/routerCLI.png)
+
+## PC0 -> Server Connection Check
+
+### Ping
+![Ping](img/hsrpping.png)
+
+### Scheme File
+[hsrp_advanced.pkt](hsrp_advanced.pkt)
 
 ---
 
 ### Задание 2
 
-## Node Exporter
+## Keepalived (VRRP)
 
-### Status
-![Node Exporter Status](img/nodeex.png)
+### Bash Script
+[check_web.sh](check_web.sh)
 
----
+### MASTER Config
+[keepalived-master.conf](keepalived-master.conf)
 
-### Задание 3
+### BACKUP Config
+[keepalived-backup.conf](keepalived-backup.conf)
 
-## Configuration
+### Before
+![Before](img/before.png)
 
-### Prometheus Config
-![Configuration](img/nodeconf.png)
-
-## Targets
-
-### Prometheus Targets
-![Targets](img/targets.png)
-
----
-
-### Задание 4
-
-## Grafana
-
-### Grafana Change Name
-![User](img/graf.png)
+### After
+![After](img/after.png)
 
 ---
