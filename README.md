@@ -11,7 +11,7 @@
 ![HAProxy](img/haproxy.png)
 
 ### HAProxy Config File
-[haproxy1.cfg](haproxy.cfg)
+[haproxy1.cfg](haproxy1.cfg)
 
 ---
 
