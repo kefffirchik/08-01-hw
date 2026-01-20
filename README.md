@@ -28,6 +28,9 @@
 ### Check With Domain
 ![With_Domain](img/wdom.png)
 
+### HAProxy Interface
+![HAProxy](img/haproxy2.png)
+
 ### HAProxy Config File  
 [haproxy2.cfg](haproxy2.cfg)
 
