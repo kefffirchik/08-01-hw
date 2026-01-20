@@ -20,7 +20,7 @@
 ## HAProxy Load Balance L7
 
 ### Python Servers Status
-[Servers](img/py3.png)
+![Servers](img/py3.png)
 
 ### Check Without Domain
 ![Without_Domain](img/wodom.png)
