@@ -1,103 +1,60 @@
-# Домашнее задание к занятию "SQL. Часть 2" Nikiforov Viktor
+# Домашнее задание к занятию "Индексы" Nikiforov Viktor
 
 ### Задание 1
 
-## Одним запросом получите информацию о магазине, в котором обслуживается более 300 покупателей, и выведите в результат следующую информацию:
-## -фамилия и имя сотрудника из этого магазина;
-## -город нахождения магазина;
-## -количество пользователей, закреплённых в этом магазине.
+## Напишите запрос к учебной базе данных, который вернёт процентное отношение общего размера всех индексов к общему размеру всех таблиц.
 
 	SELECT
-	  s.store_id,
-	  CONCAT(st.last_name, ' ', st.first_name) AS staff_name,
-	  c.city AS store_city,
-	  s_cust.cnt_customers AS customers_count
-	FROM store s
-	JOIN (
-	  SELECT store_id, COUNT(*) AS cnt_customers
-	  FROM customer
-	  GROUP BY store_id
-	  HAVING COUNT(*) > 300
-	) s_cust
-	  ON s.store_id = s_cust.store_id
-	JOIN staff st
-	  ON st.store_id = s.store_id
-	JOIN address a
-	  ON a.address_id = s.address_id
-	JOIN city c
-	  ON c.city_id = a.city_id
-	ORDER BY s.store_id, staff_name;
+	    table_schema,
+	    ROUND(SUM(index_length) * 100 / NULLIF(SUM(data_length), 0), 2) AS index_to_data_percent
+	FROM information_schema.tables
+	WHERE table_schema = 'sakila'
+	  AND table_type = 'BASE TABLE'
+	GROUP BY table_schema;
 
 ---
 
 ### Задание 2
 
-## Получите количество фильмов, продолжительность которых больше средней продолжительности всех фильмов.
+## Выполните explain analyze запроса. Перечислите узкие места, оптимизируйте запрос: внесите корректировки по использованию операторов, при необходимости добавьте индексы.
 
-	SELECT COUNT(*) AS films_longer_than_avg
-	FROM film
-	WHERE length > (SELECT AVG(length) FROM film);
+Узкие места исходного запроса:
+	1. Использован старый синтаксис соединений через запятую, из-за чего легко допустить ошибку в условиях соединения.
+	2. Таблица film не связана с другими таблицами, поэтому возникает декартово произведение.
+	3. Таблицы payment и rental соединяются по payment_date = rental_date, что некорректно; корректная связь - по rental_id.
+	4. Условие DATE(p.payment_date) = '2005-07-30' мешает эффективному использованию индекса по payment_date; лучше использовать диапазон дат.
+	5. Использование DISTINCT вместе с оконной функцией приводит к лишней обработке промежуточного результата.
+	6. Для агрегации по клиенту и фильму логичнее использовать GROUP BY, а не оконную функцию.
+
+## Оптимизированный запрос
+
+	SELECT
+	    CONCAT(c.last_name, ' ', c.first_name) AS customer_name,
+	    f.title,
+	    SUM(p.amount) AS total_amount
+	FROM payment p
+	JOIN rental r
+	    ON r.rental_id = p.rental_id
+	JOIN customer c
+	    ON c.customer_id = p.customer_id
+	JOIN inventory i
+	    ON i.inventory_id = r.inventory_id
+	JOIN film f
+	    ON f.film_id = i.film_id
+	WHERE p.payment_date >= '2005-07-30 00:00:00'
+	  AND p.payment_date <  '2005-07-31 00:00:00'
+	GROUP BY c.customer_id, c.last_name, c.first_name, f.film_id, f.title
+	ORDER BY customer_name, f.title;
 
 ---
 
 ### Задание 3
 
-## Получите информацию, за какой месяц была получена наибольшая сумма платежей, и добавьте информацию по количеству аренд за этот месяц.
+## Перечислите те индексы, которые используются в PostgreSQL, а в MySQL — нет.
 
-	SELECT
-	  p_month.ym AS year_month,
-	  p_month.total_amount,
-	  (
-	    SELECT COUNT(*)
-	    FROM rental r
-	    WHERE DATE_FORMAT(r.rental_date, '%Y-%m') = p_month.ym
-	  ) AS rentals_count
-	FROM (
-	  SELECT
-	    DATE_FORMAT(payment_date, '%Y-%m') AS ym,
-	    SUM(amount) AS total_amount
-	  FROM payment
-	  GROUP BY DATE_FORMAT(payment_date, '%Y-%m')
-	  ORDER BY total_amount DESC
-	  LIMIT 1
-	) p_month;
-
----
-
-### Задание 4
-
-## Посчитайте количество продаж, выполненных каждым продавцом. Добавьте вычисляемую колонку «Премия». Если количество продаж превышает 8000, то значение в колонке будет «Да», иначе должно быть значение «Нет».
-
-	SELECT
-	  st.staff_id,
-	  CONCAT(st.last_name, ' ', st.first_name) AS staff_name,
-	  COUNT(p.payment_id) AS sales_count,
-	  CASE
-	    WHEN COUNT(p.payment_id) > 8000 THEN 'Да'
-	    ELSE 'Нет'
-	  END AS `Премия`
-	FROM staff st
-	LEFT JOIN payment p
-	  ON p.staff_id = st.staff_id
-	GROUP BY st.staff_id, st.last_name, st.first_name
-	ORDER BY sales_count DESC;
-
----
-
-### Задание 5
-
-## Найдите фильмы, которые ни разу не брали в аренду.
-
-	SELECT
-	  f.film_id,
-	  f.title
-	FROM film f
-	LEFT JOIN inventory i
-	  ON i.film_id = f.film_id
-	LEFT JOIN rental r
-	  ON r.inventory_id = i.inventory_id
-	WHERE r.rental_id IS NULL
-	GROUP BY f.film_id, f.title
-	ORDER BY f.film_id;
+	В PostgreSQL, помимо обычных B-tree и Hash, есть типы индексов GiST, SP-GiST, GIN и BRIN.
+	В MySQL таких встроенных индексных методов в общем случае нет.
+	GiST и SP-GiST предназначены для более сложных структур поиска, GIN удобен для inverted index-сценариев (например, массивы, jsonb, полнотекстовый поиск), а BRIN применяется для очень больших таблиц как компактный индекс по диапазонам блоков. 
+	PostgreSQL в целом предоставляет более широкий набор специализированных индексных методов, чем MySQL.
 
 ---
