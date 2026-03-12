@@ -31,10 +31,10 @@
 ## Выполните конфигурацию master-master репликации. Произведите проверку.
 
 ## Replica Status 1
-![Status](img/ReplicaSQL/repmaster1.png)
+![Status](img/ReplicaSQL/replmaster1.png)
 
 ## Replica Status 2
-![Status](img/ReplicaSQL/repmaster2.png)
+![Status](img/ReplicaSQL/replmaster2.png)
 
 ## Data Create 1
 ![Data](img/ReplicaSQL/master1_create.png)
