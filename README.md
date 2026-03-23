@@ -65,10 +65,10 @@ nmap -sV 192.168.31.148
 
 ### Используемые режимы сканирования
 
-nmap -sS 192.168.31.148   # SYN scan
-nmap -sF 192.168.31.148   # FIN scan
-nmap -sX 192.168.31.148   # Xmas scan
-nmap -sU 192.168.31.148   # UDP scan
+- nmap -sS 192.168.31.148   # SYN scan
+- nmap -sF 192.168.31.148   # FIN scan
+- nmap -sX 192.168.31.148   # Xmas scan
+- nmap -sU 192.168.31.148   # UDP scan
 
 ### Отличия режимов сканирования
 
