@@ -1,121 +1,118 @@
-# Домашнее задание к занятию "Уязвимости и атаки на информационные системы" Nikiforov Viktor
-
-# Анализ уязвимостей виртуальной машины Metasploitable
+# Домашнее задание к занятию "Защита хоста" - Nikiforov Viktor
 
 ## Задание 1
 
-### Обнаруженные сетевые службы
+### Установка
 
-В ходе сканирования виртуальной машины Metasploitable с использованием утилиты nmap была выполнена команда:
+Установлен пакет ecryptfs-utils:
 
-nmap -sV 192.168.31.148
+    sudo apt update
+    sudo apt install ecryptfs-utils
 
-В результате были обнаружены следующие открытые порты и службы:
+### Создание пользователя
 
-- 21/tcp - FTP (vsftpd 2.3.4)
-- 22/tcp - SSH (OpenSSH 4.7p1 Debian)
-- 23/tcp - Telnet
-- 25/tcp - SMTP (Postfix)
-- 53/tcp - DNS (ISC BIND 9.4.2)
-- 80/tcp - HTTP (Apache 2.2.8)
-- 111/tcp - RPCBind
-- 139/tcp - NetBIOS (Samba)
-- 445/tcp - SMB (Samba)
-- 512/tcp - exec
-- 513/tcp - rlogin
-- 514/tcp - shell
-- 1099/tcp - Java RMI
-- 1524/tcp - bindshell (удалённая оболочка root)
-- 2049/tcp - NFS
-- 2121/tcp - FTP (ProFTPD 1.3.1)
-- 3306/tcp - MySQL
-- 5432/tcp - PostgreSQL
-- 5900/tcp - VNC
-- 6000/tcp - X11
-- 6667/tcp - IRC (UnrealIRCd)
-- 8009/tcp - AJP13
-- 8180/tcp - HTTP (Apache Tomcat)
+Создан пользователь cryptouser:
 
-### Обнаруженные уязвимости
+    sudo adduser cryptouser
 
-На основе выявленных служб были найдены следующие уязвимости:
+### Подготовка данных
 
-#### 1. vsftpd 2.3.4 Backdoor
+Создан тестовый файл:
 
-Описание: FTP-сервер содержит встроенный бэкдор, позволяющий получить удалённый доступ к системе.
-Ссылка: https://www.exploit-db.com/exploits/49757
+    echo "secret data" > ~/test.txt
 
-#### 2. Samba 3.X Remote Command Execution
+### Шифрование
 
-Описание: Уязвимость позволяет выполнить произвольные команды на удалённой системе через механизм username map script.
-Ссылка: https://www.exploit-db.com/exploits/16320
+Выполнено шифрование:
 
-#### 3. UnrealIRCd Backdoor
+    sudo ecryptfs-migrate-home -u cryptouser
 
-Описание: IRC-сервер содержит вредоносный код, позволяющий выполнять команды на сервере.
-Ссылка: https://www.exploit-db.com/exploits/13853
+### Проверка
+
+После входа данные доступны:
+
+    ls ~
+    cat ~/test.txt
+
+![Data](img/hostdefend/dircr.png)
+
+### Зашифрованные данные
+
+![Encrypt Data](img/hostdefend/direcr.png)
 
 ### Вывод
 
-Виртуальная машина Metasploitable содержит большое количество уязвимых сервисов, включая устаревшие версии программного обеспечения и преднамеренно встроенные бэкдоры. Это делает её удобной средой для изучения методов анализа уязвимостей и тестирования на проникновение.
+Домашний каталог пользователя был успешно зашифрован с использованием eCryptfs.
+Данные автоматически расшифровываются при входе пользователя в систему и хранятся в зашифрованном виде.
 
 ---
 
 ## Задание 2
 
-### Используемые режимы сканирования
+### Установка
 
-- nmap -sS 192.168.31.148   # SYN scan
-- nmap -sF 192.168.31.148   # FIN scan
-- nmap -sX 192.168.31.148   # Xmas scan
-- nmap -sU 192.168.31.148   # UDP scan
+Установлен пакет cryptsetup:
 
-### Отличия режимов сканирования
+    sudo apt update
+    sudo apt install cryptsetup
 
-#### SYN scan (-sS)
+### Создание раздела (100 МБ)
 
-Использует TCP SYN пакеты и не завершает соединение (полуоткрытое сканирование).
+Создан файл:
 
-Ответ сервера:
-- SYN-ACK - порт открыт
-- RST - порт закрыт
+    dd if=/dev/zero of=~/luks.img bs=1M count=100
 
-#### FIN scan (-sF)
+![File](img/hostdefend/partcr.png)
 
-Отправляет TCP FIN пакеты.
+### Подключение loop-устройства
 
-Ответ сервера:
-- RST - порт закрыт
-- Нет ответа - порт открыт
+    sudo losetup -fP ~/luks.img
+    losetup -a
 
-#### Xmas scan (-sX)
+### Шифрование
 
-Отправляет пакеты с флагами FIN, PSH и URG.
+    sudo cryptsetup luksFormat /dev/loop22
 
-Ответ сервера:
-- RST - порт закрыт
-- Нет ответа - порт открыт
+![Crypto](img/hostdefend/luks.png)
 
-#### UDP scan (-sU)
+### Открытие раздела
 
-Использует UDP пакеты.
+    sudo cryptsetup open /dev/loop22 disk
+    ls /dev/mapper/disk
 
-Ответ сервера:
-- ICMP Port Unreachable - порт закрыт
-- Нет ответа - возможен открытый порт
-- UDP ответ - порт открыт
+![Open Disk](img/hostdefend/open.png)
 
-### Анализ трафика (Wireshark)
+### Создание файловой системы
 
-В ходе анализа сетевого трафика были выявлены следующие особенности:
+    sudo mkfs.ext4 /dev/mapper/disk
 
-- SYN-сканирование: SYN -> SYN-ACK -> RST
-- FIN и Xmas: открытые порты не отвечают, закрытые отправляют RST
-- UDP: закрытые порты отвечают ICMP ошибками
-- Различия режимов видны по установленным TCP-флагам
+![FS Create](img/hostdefend/fscrea.png)
+
+### Монтирование
+
+    mkdir ~/.secret
+    sudo mount /dev/mapper/disk ~/.secret
+    sudo chown $USER:$USER ~/.secret
+    mount | grep disk
+
+![Mount](img/hostdefend/mount.png)
+
+### Работа с данными
+
+    echo "secret luks data" > ~/.secret/file.txt
+    cat ~/.secret/file.txt
+
+![Check](img/hostdefend/check.png)
+
+### Завершение
+
+    sudo umount ~/.secret
+    sudo cryptsetup luksClose disk
 
 ### Вывод
 
-Различные методы сканирования позволяют получать информацию о состоянии портов за счёт анализа реакции сервера. Некоторые методы могут использоваться для обхода фильтрации, а UDP-сканирование позволяет анализировать сервисы, работающие вне TCP.
+Был создан виртуальный раздел размером 100 МБ, зашифрованный с использованием LUKS.
+После открытия раздела данные доступны, а после закрытия - недоступны без ввода пароля.
+Это обеспечивает защиту данных на уровне блочного устройства.
 
 ---
