@@ -1,118 +1,116 @@
-# Домашнее задание к занятию "Защита хоста" - Nikiforov Viktor
+# Домашнее задание к занятию "Защита сети" - Nikiforov Viktor
+
+# Анализ защиты сети (Suricata и Fail2Ban)
+
+## Среда выполнения
+
+Защищаемая система: Ubuntu
+IP-адрес: 192.168.56.102
+
+Система злоумышленника: Kali Linux
+IP-адрес: 192.168.56.103
+
+Обе системы находятся в одной подсети: 192.168.56.0/24
+
+---
 
 ## Задание 1
 
-### Установка
+### Выполнение сканирования
 
-Установлен пакет ecryptfs-utils:
+С Kali Linux выполнены команды:
 
-    sudo apt update
-    sudo apt install ecryptfs-utils
+sudo nmap -sA 192.168.56.102
+sudo nmap -sT 192.168.56.102
+sudo nmap -sS 192.168.56.102
+sudo nmap -sV 192.168.56.102
 
-### Создание пользователя
+---
 
-Создан пользователь cryptouser:
+### Логи Suricata
 
-    sudo adduser cryptouser
+Пример зафиксированных событий:
 
-### Подготовка данных
+ET SCAN Suspicious inbound to mySQL port 3306
+ET SCAN Suspicious inbound to MSSQL port 1433
+ET SCAN Suspicious inbound to PostgreSQL port 5432
+ET SCAN Suspicious inbound to Oracle SQL port 1521
+ET SCAN Potential SSH Scan
+ET SCAN Nmap Scripting Engine User-Agent Detected
+GPL DNS named version attempt
+![Log](img/suricata.png)
 
-Создан тестовый файл:
+---
 
-    echo "secret data" > ~/test.txt
+### Анализ результатов
 
-### Шифрование
+В ходе сканирования были обнаружены:
 
-Выполнено шифрование:
+- попытки сканирования портов баз данных (MySQL, MSSQL, PostgreSQL, Oracle)
+- сканирование SSH и VNC
+- попытки определения версий сервисов
+- попытки получения информации о DNS
 
-    sudo ecryptfs-migrate-home -u cryptouser
+Suricata классифицировала трафик как:
 
-### Проверка
+- Potentially Bad Traffic
+- Attempted Information Leak
+- Web Application Attack
 
-После входа данные доступны:
-
-    ls ~
-    cat ~/test.txt
-
-![Data](img/hostdefend/dircr.png)
-
-### Зашифрованные данные
-
-![Encrypt Data](img/hostdefend/direcr.png)
-
-### Вывод
-
-Домашний каталог пользователя был успешно зашифрован с использованием eCryptfs.
-Данные автоматически расшифровываются при входе пользователя в систему и хранятся в зашифрованном виде.
+Fail2Ban не зафиксировал событий, так как не было попыток аутентификации.
 
 ---
 
 ## Задание 2
 
-### Установка
+### Подготовка словарей
 
-Установлен пакет cryptsetup:
+nano users.txt
+nano pass.txt
 
-    sudo apt update
-    sudo apt install cryptsetup
+Пример содержимого:
 
-### Создание раздела (100 МБ)
+users.txt
 
-Создан файл:
+root
+user
+test
+ubuntu
 
-    dd if=/dev/zero of=~/luks.img bs=1M count=100
+pass.txt
 
-![File](img/hostdefend/partcr.png)
+123456
+password
+qwerty
+admin
 
-### Подключение loop-устройства
+---
 
-    sudo losetup -fP ~/luks.img
-    losetup -a
+### Проведение атаки
 
-### Шифрование
+hydra -L users.txt -P pass.txt 192.168.56.102 ssh
+![Attack](img/hydra.png)
 
-    sudo cryptsetup luksFormat /dev/loop22
+---
 
-![Crypto](img/hostdefend/luks.png)
+### Логи Fail2Ban
 
-### Открытие раздела
+Пример записей:
 
-    sudo cryptsetup open /dev/loop22 disk
-    ls /dev/mapper/disk
+[sshd] Found 192.168.56.103
+[sshd] Ban 192.168.56.103
+![Log](img/fail2ban.png)
 
-![Open Disk](img/hostdefend/open.png)
+---
 
-### Создание файловой системы
+### Анализ результатов
 
-    sudo mkfs.ext4 /dev/mapper/disk
+В ходе атаки были зафиксированы:
 
-![FS Create](img/hostdefend/fscrea.png)
+- множественные неудачные попытки входа по SSH
+- обнаружение атакующего IP-адреса
+- автоматическая блокировка IP
 
-### Монтирование
-
-    mkdir ~/.secret
-    sudo mount /dev/mapper/disk ~/.secret
-    sudo chown $USER:$USER ~/.secret
-    mount | grep disk
-
-![Mount](img/hostdefend/mount.png)
-
-### Работа с данными
-
-    echo "secret luks data" > ~/.secret/file.txt
-    cat ~/.secret/file.txt
-
-![Check](img/hostdefend/check.png)
-
-### Завершение
-
-    sudo umount ~/.secret
-    sudo cryptsetup luksClose disk
-
-### Вывод
-
-Был создан виртуальный раздел размером 100 МБ, зашифрованный с использованием LUKS.
-После открытия раздела данные доступны, а после закрытия - недоступны без ввода пароля.
-Это обеспечивает защиту данных на уровне блочного устройства.
+Fail2Ban успешно предотвратил атаку методом блокировки источника.
 
 ---
