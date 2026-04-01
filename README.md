@@ -20,10 +20,10 @@ IP-адрес: 192.168.56.103
 
 С Kali Linux выполнены команды:
 
-sudo nmap -sA 192.168.56.102
-sudo nmap -sT 192.168.56.102
-sudo nmap -sS 192.168.56.102
-sudo nmap -sV 192.168.56.102
+- sudo nmap -sA 192.168.56.102
+- sudo nmap -sT 192.168.56.102
+- sudo nmap -sS 192.168.56.102
+- sudo nmap -sV 192.168.56.102
 
 ---
 
@@ -31,13 +31,13 @@ sudo nmap -sV 192.168.56.102
 
 Пример зафиксированных событий:
 
-ET SCAN Suspicious inbound to mySQL port 3306
-ET SCAN Suspicious inbound to MSSQL port 1433
-ET SCAN Suspicious inbound to PostgreSQL port 5432
-ET SCAN Suspicious inbound to Oracle SQL port 1521
-ET SCAN Potential SSH Scan
-ET SCAN Nmap Scripting Engine User-Agent Detected
-GPL DNS named version attempt
+- ET SCAN Suspicious inbound to mySQL port 3306
+- ET SCAN Suspicious inbound to MSSQL port 1433
+- ET SCAN Suspicious inbound to PostgreSQL port 5432
+- ET SCAN Suspicious inbound to Oracle SQL port 1521
+- ET SCAN Potential SSH Scan
+- ET SCAN Nmap Scripting Engine User-Agent Detected
+- GPL DNS named version attempt
 ![Log](img/suricata.png)
 
 ---
@@ -65,24 +65,24 @@ Fail2Ban не зафиксировал событий, так как не был
 
 ### Подготовка словарей
 
-nano users.txt
-nano pass.txt
+- nano users.txt
+- nano pass.txt
 
 Пример содержимого:
 
 users.txt
 
-root
-user
-test
-ubuntu
+- root
+- user
+- test
+- ubuntu
 
 pass.txt
 
-123456
-password
-qwerty
-admin
+- 123456
+- password
+- qwerty
+- admin
 
 ---
 
@@ -97,8 +97,8 @@ hydra -L users.txt -P pass.txt 192.168.56.102 ssh
 
 Пример записей:
 
-[sshd] Found 192.168.56.103
-[sshd] Ban 192.168.56.103
+- [sshd] Found 192.168.56.103
+- [sshd] Ban 192.168.56.103
 ![Log](img/fail2ban.png)
 
 ---
