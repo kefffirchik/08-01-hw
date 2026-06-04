@@ -1,1 +1,14 @@
 sdvps-materials/
+# Vagrant
+.vagrant/
+**/.vagrant/
+
+# VirtualBox
+*.vbox
+*.vbox-prev
+
+# Packer
+packer_cache/
+.vagrant/
+**/.vagrant/
+packer_cache/
