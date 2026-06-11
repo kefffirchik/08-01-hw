@@ -1,343 +1,203 @@
-# Домашнее задание к занятию «Применение принципов IaaC в работе с виртуальными машинами»
-
-## Цель работы
-
-В рамках домашнего задания были изучены и применены инструменты Infrastructure as Code для работы с виртуальными машинами:
-
-- VirtualBox
-- Vagrant
-- Packer
-- Yandex Cloud CLI
-
-В результате был создан собственный образ Debian для Yandex Cloud с предустановленными:
-
-- Docker Engine
-- Docker Compose Plugin
-- htop
-- tmux
+# Домашнее задание к занятию «Оркестрация группой Docker контейнеров на примере Docker Compose»
 
 ---
 
-# Задача 1. Подготовка окружения
+# Задача 1
 
-На учебную Linux ВМ были установлены:
+## Создание собственного образа nginx
 
-- VirtualBox
-- Vagrant
-- Packer
-- Yandex Cloud CLI
+Создан Dockerfile:
 
-Проверка VirtualBox:
+```dockerfile
+FROM nginx:1.29.0
 
-```bash
-VBoxManage --version
+COPY index.html /usr/share/nginx/html/index.html
 ```
 
-Результат:
+Создан файл `index.html`:
+
+```html
+<html>
+<head>
+Hey, Netology
+</head>
+<body>
+<h1>I will be DevOps Engineer!</h1>
+</body>
+</html>
+```
+
+### Ответ
+
+Ссылка на репозиторий Docker Hub:
 
 ```text
-7.0.16_Ubuntur162802
+https://hub.docker.com/repository/docker/kefffirchik/custom-nginx/general
 ```
-
-Проверка работы Yandex Cloud CLI:
-
-```bash
-yc compute image list
-```
-
-CLI успешно подключается к облаку и выполняет запросы.
 
 ---
 
-# Задача 2. Создание виртуальной машины через Vagrant
+# Задача 2
 
-Создан каталог `src` и файл `Vagrantfile`.
+## Запуск контейнера из собственного образа
 
-Используемый образ:
+Контейнер был запущен и переименован. Выполнена проверка публикации порта, логов контейнера и доступности страницы.
 
-```ruby
-ISO = "bento/ubuntu-20.04"
+### Скриншот
+
+```md
+![Задача 2](img/Dockercompose/task2.png)
 ```
 
-Запуск виртуальной машины:
+---
 
-```bash
-vagrant up --provider=virtualbox
+# Задача 3
+
+## Работа со стандартными потоками контейнера
+
+### Ответ
+
+Контейнер остановился после нажатия `Ctrl+C`, потому что команда `docker attach` подключает терминал к основному процессу контейнера. После получения сигнала SIGINT основной процесс nginx завершился. Поскольку этот процесс является PID 1 внутри контейнера, Docker остановил контейнер.
+
+### Скриншот 1
+
+```md
+![Attach](img/Dockercompose/attach.png)
 ```
 
-В процессе выполнения:
+### Скриншот 2
 
-- образ `bento/ubuntu-20.04` был успешно скачан;
-- VirtualBox provider корректно определился;
-- Vagrant начал создание виртуальной машины.
+```md
+![Вход в контейнер](img/Dockercompose/enterinside.png)
+```
 
-Однако запуск завершился ошибкой:
+### Скриншот 3
+
+```md
+![Изменение порта](img/Dockercompose/portchange.png)
+```
+
+### Ответ
+
+После изменения конфигурации nginx начал прослушивать порт 81 внутри контейнера, однако Docker продолжал перенаправлять трафик с порта 8080 хостовой машины на порт 80 контейнера.
+
+В результате запросы на `http://127.0.0.1:8080` перестали корректно обрабатываться, так как внутри контейнера больше не было процесса, прослушивающего порт 80.
+
+### Скриншот 4
+
+```md
+![Ошибка проброса порта](img/Dockercompose/porterror.png)
+```
+
+### Скриншот 5
+
+```md
+![Удаление контейнера](img/Dockercompose/condel.png)
+```
+
+---
+
+# Задача 4
+
+## Использование bind mount
+
+### Ответ
+
+Оба контейнера получили доступ к одной и той же директории хостовой системы через bind mount. Файлы, созданные внутри контейнера и на хостовой машине, стали доступны одновременно из обоих контейнеров.
+
+### Скриншот
+
+```md
+![Bind mount](img/Dockercompose/task4.png)
+```
+
+---
+
+# Задача 5
+
+## Работа с Docker Compose
+
+### Ответ
+
+При наличии одновременно файлов compose.yaml и docker-compose.yaml Docker Compose использовал файл compose.yaml, поскольку согласно современному стандарту Compose этот файл имеет более высокий приоритет и считается основным конфигурационным файлом проекта. Это подтверждается сообщением:
 
 ```text
-AMD-V is not available (VERR_SVM_NO_SVM)
+Using /tmp/netology/docker/task5/compose.yaml
 ```
 
-Причина ошибки заключается в том, что работа выполнялась внутри учебной Linux ВМ VirtualBox, где недоступна вложенная виртуализация (Nested Virtualization).
+Поэтому был запущен только сервис portainer, описанный в файле compose.yaml.
 
-Согласно условиям задания, в этом случае допускается неполное выполнение до ошибки запуска виртуальной машины.
+### Скриншот 1
 
----
-
-# Задача 3. Создание собственного образа Yandex Cloud через Packer
-
-Создан файл `mydebian.json.pkr.hcl`.
-
-Содержимое файла:
-
-```hcl
-source "yandex" "debian_docker" {
-  disk_type           = "network-hdd"
-  folder_id           = "xxxxxx"
-  image_description   = "my custom debian with docker"
-  image_name          = "debian-11-docker"
-  source_image_family = "debian-11"
-  ssh_username        = "debian"
-  subnet_id           = "xxxxxx"
-  token               = "xxxxxx"
-  use_ipv4_nat        = true
-  zone                = "ru-central1-a"
-}
-
-build {
-  sources = ["source.yandex.debian_docker"]
-
-  provisioner "shell" {
-    inline = [
-      "export DEBIAN_FRONTEND=noninteractive",
-
-      "sudo sed -i '/bullseye-backports/d' /etc/apt/sources.list || true",
-
-      "sudo apt-get update",
-      "sudo apt-get install -y ca-certificates curl",
-
-      "sudo install -m 0755 -d /etc/apt/keyrings",
-
-      "sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc",
-
-      "sudo chmod a+r /etc/apt/keyrings/docker.asc",
-
-      "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo $VERSION_CODENAME) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
-
-      "sudo apt-get update",
-
-      "sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin",
-
-      "sudo apt-get install -y htop tmux"
-    ]
-  }
-}
+```md
+![Запуск compose](img/Dockercompose/compose.png)
 ```
 
-Для установки Docker использовалась официальная документация:
+## Использование include
 
-https://docs.docker.com/engine/install/debian/
+После изменения `compose.yaml` были подняты сервисы:
 
----
+- Portainer
+- Registry
 
-## Проверка конфигурации
+### Скриншот 2
 
-Проверка файла Packer:
+```md
+![Сервисы compose](img/Dockercompose/portainer.png)
+```
+
+## Загрузка образа в локальный Registry
+
+### Скриншот 3
+
+```md
+![Push в registry](img/Dockercompose/push.png)
+```
+
+## Inspect контейнера в Portainer
+
+### Скриншот 4
+
+```md
+![Inspect контейнера](img/Dockercompose/inspect.png)
+```
+
+## Orphan Containers
+
+### Ответ
+
+Контейнер `task5-portainer-1` был создан предыдущей версией compose-проекта и больше не описывался текущей конфигурацией. Docker Compose определил его как orphan container и предложил удалить.
+
+Для удаления orphan-контейнеров была выполнена команда:
 
 ```bash
-packer validate mydebian.json.pkr.hcl
+docker compose up -d --remove-orphans
 ```
 
-Результат:
+Остановка проекта выполнена одной командой:
 
-```text
-The configuration is valid.
+```bash
+docker compose down --remove-orphans
+```
+
+### Скриншот 5
+
+```md
+![Orphan containers](img/Dockercompose/orphans.png)
 ```
 
 ---
 
-## Сборка образа
+# Итог
 
-Запуск сборки:
+В ходе выполнения работы были изучены:
 
-```bash
-packer build mydebian.json.pkr.hcl
-```
-
-В процессе сборки Packer:
-
-- создал временную виртуальную машину;
-- подключился к ней по SSH;
-- установил Docker Engine;
-- установил Docker Compose Plugin;
-- установил htop;
-- установил tmux;
-- создал пользовательский образ Yandex Cloud.
-
-Результат:
-
-```text
-Build 'yandex.debian_docker' finished after 3 minutes 1 second.
-```
-
-Созданный образ:
-
-```text
-Name: debian-11-docker
-ID: fd887mell6rlrt0jomnc
-```
-
----
-
-## Проверка созданного образа
-
-Команда:
-
-```bash
-yc compute image list
-```
-
-Результат:
-
-```text
-+----------------------+------------------+--------+----------------------+--------+
-|          ID          |       NAME       | FAMILY |     PRODUCT IDS      | STATUS |
-+----------------------+------------------+--------+----------------------+--------+
-| fd887mell6rlrt0jomnc | debian-11-docker |        | f2ej779m0euks15j3a2d | READY  |
-+----------------------+------------------+--------+----------------------+--------+
-```
-
-Образ успешно создан и находится в состоянии `READY`.
-
----
-
-## Создание виртуальной машины из собственного образа
-
-Создание тестовой виртуальной машины:
-
-```bash
-yc compute instance create \
-  --name docker-test \
-  --zone ru-central1-a \
-  --create-boot-disk image-id=fd887mell6rlrt0jomnc,size=10 \
-  --cores 2 \
-  --memory 2 \
-  --network-interface subnet-id=xxxxxx,nat-ip-version=ipv4 \
-  --metadata ssh-keys="debian:$(cat ~/.ssh/id_ed25519.pub)"
-```
-
-После создания виртуальная машина получила внешний IP-адрес и перешла в состояние `RUNNING`.
-
----
-
-## Проверка установленного ПО
-
-Подключение по SSH:
-
-```bash
-ssh debian@<external_ip>
-```
-
-Проверка Docker:
-
-```bash
-sudo docker version
-```
-
-Результат:
-
-```text
-Client: Docker Engine - Community
-Version: 29.5.3
-
-Server: Docker Engine - Community
-Version: 29.5.3
-```
-
-Проверка Docker Compose:
-
-```bash
-sudo docker compose version
-```
-
-Результат:
-
-```text
-Docker Compose version v5.1.4
-```
-
-Проверка htop:
-
-```bash
-htop --version
-```
-
-Результат:
-
-```text
-htop 3.0.5
-```
-
-Проверка tmux:
-
-```bash
-tmux -V
-```
-
-Результат:
-
-```text
-tmux 3.1c
-```
-
-Все требуемые пакеты были успешно установлены в созданный образ.
-
----
-
-## Удаление ресурсов
-
-После проверки были удалены созданные ресурсы.
-
-Удаление виртуальной машины:
-
-```bash
-yc compute instance delete docker-test
-```
-
-Удаление образа:
-
-```bash
-yc compute image delete fd887mell6rlrt0jomnc
-```
-
----
-
-## Безопасность
-
-Перед публикацией файла конфигурации все секретные данные были удалены.
-
-Значения заменены на заглушки:
-
-```hcl
-folder_id = "xxxxxx"
-subnet_id = "xxxxxx"
-token     = "xxxxxx"
-```
-
-OAuth-токены и идентификаторы облачных ресурсов в репозиторий не публикуются.
-
----
-
-# Итоги
-
-В ходе выполнения работы:
-
-- установлены VirtualBox, Vagrant, Packer и YC CLI;
-- выполнена настройка Yandex Cloud CLI;
-- подготовлен Vagrantfile для запуска виртуальной машины;
-- исследована проблема вложенной виртуализации;
-- создан Packer-конфиг для сборки пользовательского образа;
-- собран собственный образ Debian 11 для Yandex Cloud;
-- установлены Docker Engine, Docker Compose Plugin, htop и tmux;
-- создана и протестирована виртуальная машина на основе собранного образа;
-- подтверждена работоспособность установленного программного обеспечения;
-- выполнена очистка облачных ресурсов после завершения проверки.
+- создание собственных Docker-образов;
+- публикация образов в Docker Hub;
+- работа со стандартными потоками контейнеров;
+- изменение конфигурации nginx внутри контейнера;
+- bind mount;
+- Docker Compose;
+- локальный Docker Registry;
+- Portainer;
+- управление Compose-проектами и orphan containers.
