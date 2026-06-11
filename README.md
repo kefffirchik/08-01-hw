@@ -31,9 +31,7 @@ Hey, Netology
 
 Ссылка на репозиторий Docker Hub:
 
-```text
-https://hub.docker.com/repository/docker/kefffirchik/custom-nginx/general
-```
+[Docker Hub](https://hub.docker.com/repository/docker/kefffirchik/custom-nginx/general)
 
 ---
 
@@ -45,9 +43,7 @@ https://hub.docker.com/repository/docker/kefffirchik/custom-nginx/general
 
 ### Скриншот
 
-```md
 ![Задача 2](img/Dockercompose/task2.png)
-```
 
 ---
 
@@ -61,21 +57,15 @@ https://hub.docker.com/repository/docker/kefffirchik/custom-nginx/general
 
 ### Скриншот 1
 
-```md
 ![Attach](img/Dockercompose/attach.png)
-```
 
 ### Скриншот 2
 
-```md
 ![Вход в контейнер](img/Dockercompose/enterinside.png)
-```
 
 ### Скриншот 3
 
-```md
 ![Изменение порта](img/Dockercompose/portchange.png)
-```
 
 ### Ответ
 
@@ -85,15 +75,11 @@ https://hub.docker.com/repository/docker/kefffirchik/custom-nginx/general
 
 ### Скриншот 4
 
-```md
 ![Ошибка проброса порта](img/Dockercompose/porterror.png)
-```
 
 ### Скриншот 5
 
-```md
 ![Удаление контейнера](img/Dockercompose/condel.png)
-```
 
 ---
 
@@ -107,9 +93,7 @@ https://hub.docker.com/repository/docker/kefffirchik/custom-nginx/general
 
 ### Скриншот
 
-```md
 ![Bind mount](img/Dockercompose/task4.png)
-```
 
 ---
 
@@ -129,9 +113,7 @@ Using /tmp/netology/docker/task5/compose.yaml
 
 ### Скриншот 1
 
-```md
 ![Запуск compose](img/Dockercompose/compose.png)
-```
 
 ## Использование include
 
@@ -142,25 +124,19 @@ Using /tmp/netology/docker/task5/compose.yaml
 
 ### Скриншот 2
 
-```md
 ![Сервисы compose](img/Dockercompose/portainer.png)
-```
 
 ## Загрузка образа в локальный Registry
 
 ### Скриншот 3
 
-```md
 ![Push в registry](img/Dockercompose/push.png)
-```
 
 ## Inspect контейнера в Portainer
 
 ### Скриншот 4
 
-```md
 ![Inspect контейнера](img/Dockercompose/inspect.png)
-```
 
 ## Orphan Containers
 
@@ -182,9 +158,7 @@ docker compose down --remove-orphans
 
 ### Скриншот 5
 
-```md
 ![Orphan containers](img/Dockercompose/orphans.png)
-```
 
 ---
 
