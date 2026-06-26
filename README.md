@@ -1,177 +1,300 @@
-# Домашнее задание к занятию «Оркестрация группой Docker контейнеров на примере Docker Compose»
+# Домашнее задание к занятию «Практическое применение Docker»
+
+## Цель работы
+
+В ходе выполнения домашнего задания были выполнены следующие задачи:
+
+- сборка Docker-образа Python-приложения с использованием Multi-stage Build;
+- публикация образа в Yandex Container Registry;
+- сканирование образа на наличие уязвимостей;
+- запуск приложения с помощью Docker Compose;
+- деплой приложения на виртуальную машину в Yandex Cloud;
+- автоматическое резервное копирование базы данных MySQL;
+- извлечение бинарного файла Terraform из Docker-образа.
 
 ---
 
 # Задача 1
 
-## Создание собственного образа nginx
+## Создание Dockerfile
 
-Создан Dockerfile:
+Создан `Dockerfile.python` с использованием **Multi-stage Build**.
 
-```dockerfile
-FROM nginx:1.29.0
+Образ успешно собран.
 
-COPY index.html /usr/share/nginx/html/index.html
+### Сборка образа
+
+```bash
+docker build -f Dockerfile.python -t shvirtd-python:task1 .
 ```
 
-Создан файл `index.html`:
+![task1-build](img/1-build.png)
 
-```html
-<html>
-<head>
-Hey, Netology
-</head>
-<body>
-<h1>I will be DevOps Engineer!</h1>
-</body>
-</html>
+---
+
+### Проверка наличия образа
+
+```bash
+docker images | grep shvirtd-python
 ```
 
-### Ответ
+![task1-image](img/1-image.png)
 
-Ссылка на репозиторий Docker Hub:
+---
 
-[Docker Hub](https://hub.docker.com/repository/docker/kefffirchik/custom-nginx/general)
+### Запуск контейнера
+
+```bash
+docker run --rm -p 5000:5000 shvirtd-python:task1
+```
+
+Приложение успешно запускается.
+
+![task1-run](img/1-run.png)
 
 ---
 
 # Задача 2
 
-## Запуск контейнера из собственного образа
+## Работа с Yandex Container Registry
 
-Контейнер был запущен и переименован. Выполнена проверка публикации порта, логов контейнера и доступности страницы.
+Создан Container Registry с именем **test**.
 
-### Скриншот
+```bash
+yc container registry create --name test
+```
 
-![Задача 2](img/Dockercompose/task2.png)
+![task2-registry](img/2-create.png)
+
+---
+
+### Публикация образа
+
+```bash
+docker push cr.yandex/$REGISTRY_ID/shvirtd-python:task1
+```
+
+![task2-push](img/2-push.png)
+
+---
+
+### Сканирование образа
+
+```bash
+yc container image scan $IMAGE_ID
+```
+
+![task2-scan](img/2-scan.png)
+
+---
+
+### Отчет по уязвимостям
+
+```bash
+yc container image list-vulnerabilities --scan-result-id che3kpeg79a149nfnhci
+```
+
+![task2-vulnerabilities](img/2-list.png)
 
 ---
 
 # Задача 3
 
-## Работа со стандартными потоками контейнера
+## Docker Compose
 
-### Ответ
+Создан файл `compose.yaml`, включающий:
 
-Контейнер остановился после нажатия `Ctrl+C`, потому что команда `docker attach` подключает терминал к основному процессу контейнера. После получения сигнала SIGINT основной процесс nginx завершился. Поскольку этот процесс является PID 1 внутри контейнера, Docker остановил контейнер.
+- web;
+- db;
+- ingress-proxy;
+- reverse-proxy.
 
-### Скриншот 1
+После запуска проекта приложение доступно на порту **8090**.
 
-![Attach](img/Dockercompose/attach.png)
+Проверка:
 
-### Скриншот 2
+```bash
+curl -L http://127.0.0.1:8090
+```
 
-![Вход в контейнер](img/Dockercompose/enterinside.png)
+Ответ приложения:
 
-### Скриншот 3
+```
+TIME: 2026-06-26 15:00:05
+IP: 127.0.0.1
+```
 
-![Изменение порта](img/Dockercompose/portchange.png)
+![task3-curl](img/3-curl.png)
 
-### Ответ
+---
 
-После изменения конфигурации nginx начал прослушивать порт 81 внутри контейнера, однако Docker продолжал перенаправлять трафик с порта 8080 хостовой машины на порт 80 контейнера.
+После первого обращения была создана таблица `requests`.
 
-В результате запросы на `http://127.0.0.1:8080` перестали корректно обрабатываться, так как внутри контейнера больше не было процесса, прослушивающего порт 80.
+Проверка БД:
 
-### Скриншот 4
+```sql
+SELECT * FROM requests LIMIT 10;
+```
 
-![Ошибка проброса порта](img/Dockercompose/porterror.png)
-
-### Скриншот 5
-
-![Удаление контейнера](img/Dockercompose/condel.png)
+![task3-sql](img/3-select.png)
 
 ---
 
 # Задача 4
 
-## Использование bind mount
+## Развертывание проекта в Yandex Cloud
 
-### Ответ
+Проект успешно развернут на виртуальной машине.
 
-Оба контейнера получили доступ к одной и той же директории хостовой системы через bind mount. Файлы, созданные внутри контейнера и на хостовой машине, стали доступны одновременно из обоих контейнеров.
+Проверка доступности выполнялась через сервис:
 
-### Скриншот
+https://check-host.net
 
-![Bind mount](img/Dockercompose/task4.png)
+Все HTTP-запросы успешно проходят через цепочку:
+
+```
+Internet
+    ↓
+Nginx
+    ↓
+HAProxy
+    ↓
+FastAPI
+    ↓
+MySQL
+```
+
+![task4-checkhost](img/4-check.png)
+
+---
+
+После внешнего обращения в базе данных появилась новая запись.
+
+```sql
+SELECT * FROM requests LIMIT 10;
+```
+
+![task4-sql](img/4-select.png)
+
+---
+
+Ссылка на fork-репозиторий:
+
+```
+https://github.com/kefffirchik/shvirtd-example-python
+```
 
 ---
 
 # Задача 5
 
-## Работа с Docker Compose
+## Резервное копирование MySQL
 
-### Ответ
+Создан bash-скрипт:
 
-При наличии одновременно файлов compose.yaml и docker-compose.yaml Docker Compose использовал файл compose.yaml, поскольку согласно современному стандарту Compose этот файл имеет более высокий приоритет и считается основным конфигурационным файлом проекта. Это подтверждается сообщением:
-
-```text
-Using /tmp/netology/docker/task5/compose.yaml
+```
+backup-mysql.sh
 ```
 
-Поэтому был запущен только сервис portainer, описанный в файле compose.yaml.
+Скрипт использует контейнер:
 
-### Скриншот 1
+```
+schnitzler/mysqldump
+```
 
-![Запуск compose](img/Dockercompose/compose.png)
+Исходный код bash-скрипта доступен по ссылке:
 
-## Использование include
+[backup-mysql.sh](https://github.com/kefffirchik/shvirtd-example-python/blob/main/backup-mysql.sh)
 
-После изменения `compose.yaml` были подняты сервисы:
+Параметры подключения к БД загружаются из существующего файла `.env`.
 
-- Portainer
-- Registry
+---
 
-### Скриншот 2
+### Настройка cron
 
-![Сервисы compose](img/Dockercompose/portainer.png)
+Резервное копирование выполняется каждую минуту.
 
-## Загрузка образа в локальный Registry
+```cron
+* * * * * /opt/shvirtd-example-python/backup-mysql.sh >> /var/log/mysql-backup.log 2>&1
+```
 
-### Скриншот 3
+![task5-cron](img/5-cron.png)
 
-![Push в registry](img/Dockercompose/push.png)
+---
 
-## Inspect контейнера в Portainer
+### Проверка резервных копий
 
-### Скриншот 4
+Файлы резервных копий успешно создаются в каталоге:
 
-![Inspect контейнера](img/Dockercompose/inspect.png)
+```
+/opt/backup
+```
 
-## Orphan Containers
+![task5-backup](img/5-backup.png)
 
-### Ответ
+---
 
-Контейнер `task5-portainer-1` был создан предыдущей версией compose-проекта и больше не описывался текущей конфигурацией. Docker Compose определил его как orphan container и предложил удалить.
+# Задача 6
 
-Для удаления orphan-контейнеров была выполнена команда:
+## Извлечение Terraform из Docker-образа
+
+Образ успешно загружен.
 
 ```bash
-docker compose up -d --remove-orphans
+docker pull hashicorp/terraform:latest
 ```
 
-Остановка проекта выполнена одной командой:
+![task6-pull](img/6-pull.png)
+
+---
+
+### Использование dive
+
+При помощи `dive` найден бинарный файл:
+
+```
+/bin/terraform
+```
+
+![task6-dive](img/6-dive.png)
+
+---
+
+### Использование docker save
+
+Образ сохранен:
 
 ```bash
-docker compose down --remove-orphans
+docker save hashicorp/terraform:latest -o terraform.tar
 ```
 
-### Скриншот 5
+После распаковки бинарный файл успешно извлечен.
 
-![Orphan containers](img/Dockercompose/orphans.png)
+Проверка:
+
+```bash
+./rootfs/bin/terraform version
+```
+
+Результат:
+
+```
+Terraform v1.15.7
+```
+
+![task6-save](img/6-save.png)
 
 ---
 
 # Итог
 
-В ходе выполнения работы были изучены:
+В ходе выполнения домашнего задания были успешно выполнены следующие задачи:
 
-- создание собственных Docker-образов;
-- публикация образов в Docker Hub;
-- работа со стандартными потоками контейнеров;
-- изменение конфигурации nginx внутри контейнера;
-- bind mount;
-- Docker Compose;
-- локальный Docker Registry;
-- Portainer;
-- управление Compose-проектами и orphan containers.
+- создан Dockerfile с использованием Multi-stage Build;
+- собран Docker-образ приложения;
+- опубликован образ в Yandex Container Registry;
+- выполнено сканирование образа на уязвимости;
+- настроен Docker Compose;
+- выполнен деплой приложения в Yandex Cloud;
+- реализовано автоматическое резервное копирование базы данных MySQL;
+- выполнено извлечение бинарного файла Terraform из Docker-образа двумя способами (`dive` и `docker save`).
